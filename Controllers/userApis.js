@@ -13,13 +13,13 @@ const getdata = () => {
 }
 
 // to get details of a perticular user with id
-routes.get('/userdata/:id', (req, res) => {
+routes.get('/userIndex/:id', (req, res) => {
     const user = getdata();
     const dynamicid = req.params.id
     const userDetails = user.find(userx => userx.id == dynamicid);
-    if(userDetails){
+    if (userDetails) {
         res.status(200).send(userDetails);
-    }else{
+    } else {
         res.status(400).send('user not exists');
     }
 })
@@ -30,20 +30,45 @@ routes.get('/details', (req, res) => {
     res.status(200).send(users);
 })
 
-// to insert a user in the db userdatafile.json
+// to insert a user in the db userIndexfile.json
 routes.post('/insertUser', (req, res) => {
     const data = req.body;
     const usersdata = getdata();
 
-    if(usersdata.find(item => item.id != data.id)){
+    if (usersdata.find(item => item.id != data.id)) {
         //insert
         data.id = new Date().getTime();
         usersdata.push(data)
-        fs.writeFileSync(dataFilepath,JSON.stringify(usersdata,null,2));
+        fs.writeFileSync(dataFilepath, JSON.stringify(usersdata, null, 2));
         res.status(200).send("user created successfully")
     }
-    else{
+    else {
         res.status(400).send("user already exists")
+    }
+})
+
+// put request to update properties of users
+
+routes.put('/updateUser/:id', (req, res) => {
+    const userid = req.params.id;
+    const dataToBeUpdated = req.body;
+    const AllUsersData = getdata();
+
+    const userIndex = AllUsersData.findIndex(item => item.id == userid);
+    console.log(userIndex);
+    if (AllUsersData[userIndex]) {
+        AllUsersData[userIndex].name = dataToBeUpdated.name || AllUsersData[userIndex].name;
+        AllUsersData[userIndex].class = dataToBeUpdated.class || AllUsersData[userIndex].class;
+        AllUsersData[userIndex].age = dataToBeUpdated.age || AllUsersData[userIndex].age;
+        AllUsersData[userIndex].address = dataToBeUpdated.address || AllUsersData[userIndex].address;
+
+        console.log(AllUsersData);
+        const updatedData = fs.writeFileSync(dataFilepath,JSON.stringify(AllUsersData,null,2));
+        res.status(200).send({
+            message: 'user updated successfully',
+        })
+    } else {
+        res.status(400).send('invalid id');
     }
 })
 
